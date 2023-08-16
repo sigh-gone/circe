@@ -637,7 +637,7 @@ where
             let tick: Path;
             if exp_indexer % 10 == 0 {
                 tick = Path::line(
-                    iced::Point::new(bb_canvas.min.x + text_tick_border, y as f32),
+                    iced::Point::new(bb_canvas.min.x + text_tick_borderg, y as f32),
                     iced::Point::new(bb_canvas.min.x + border, y as f32),
                 );
             } else {
