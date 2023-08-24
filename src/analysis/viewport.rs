@@ -14,12 +14,11 @@ use iced::{alignment, Renderer};
 use iced::{
     mouse,
     widget::canvas::{
-        self, event, path::Builder, stroke, Cache, Event, Frame, Geometry, LineCap, Stroke, Text,
+        self, event, fill::Rule, path::Builder, stroke, Cache, Event, Fill, Frame, Geometry,
+        LineCap, Path, Stroke, Style, Text,
     },
     Color, Length, Rectangle, Size, Theme,
 };
-use iced::widget::canvas::{Fill, Path, Style};
-use iced::widget::canvas::fill::Rule;
 
 /// viewport to canvas space transform with independent x-y aspect ratios
 #[derive(Debug, Clone, Copy)]
