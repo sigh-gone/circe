@@ -10,7 +10,7 @@ use crate::transforms::{
 };
 use crate::IcedStruct;
 use iced::keyboard::Modifiers;
-use iced::Renderer;
+use iced::{alignment, Renderer};
 use iced::{
     mouse,
     widget::canvas::{
@@ -18,6 +18,8 @@ use iced::{
     },
     Color, Length, Rectangle, Size, Theme,
 };
+use iced::widget::canvas::{Fill, Path, Style};
+use iced::widget::canvas::fill::Rule;
 
 /// viewport to canvas space transform with independent x-y aspect ratios
 #[derive(Debug, Clone, Copy)]
@@ -229,6 +231,13 @@ where
 
         let passive = self.passive_cache.draw(renderer, bounds.size(), |frame| {
             self.draw_origin_marker(frame);
+            self.draw_grid(
+                frame,
+                CSBox::new(
+                    CSPoint::origin(),
+                    CSPoint::from([bounds.width, bounds.height]),
+                ),
+            );
             self.content.draw_passive(self.vct.transform(), frame);
         });
 
@@ -570,5 +579,167 @@ where
         let r = self.scale * 0.5;
         path_builder.circle(Point::from(p).into(), r);
         frame.stroke(&path_builder.build(), ref_stroke);
+    }
+
+    pub fn draw_grid(&self, frame: &mut Frame, bb_canvas: CSBox) {
+        fn text_scale_value(value: f32) -> f32 {
+            let value_str = value.to_string();
+            let decimal_index = value_str.find('.').unwrap_or(value_str.len());
+
+            let digits_before_decimal = decimal_index;
+            let scale_factor = 10.0_f32.powi(-(digits_before_decimal as i32));
+
+            value * scale_factor
+        }
+
+        let border = 40.0;
+        let text_tick_border = 23.0;
+        let tick_boder = 30.0;
+        let xy_indexer: i64 = if self.vct.x_scale() as i64 > 0 {
+            self.vct.x_scale() as i64
+        } else {
+            1
+        };
+        let emod = 10;
+
+        //draw x axis
+        let y_axis = Path::line(
+            iced::Point::new(bb_canvas.center().x, bb_canvas.min.y),
+            iced::Point::new(bb_canvas.center().x, bb_canvas.max.y),
+        );
+
+        //draw y axis
+        let x_axis = Path::line(
+            iced::Point::new(bb_canvas.min.x, bb_canvas.center().y),
+            iced::Point::new(bb_canvas.max.x, bb_canvas.center().y),
+        );
+
+        //get the line border for the ticks set up
+        let bottom_border = Path::line(
+            iced::Point::new(bb_canvas.min.x + border, bb_canvas.max.y - border),
+            iced::Point::new(bb_canvas.max.x, bb_canvas.max.y - border),
+        );
+        let left_border = Path::line(
+            iced::Point::new(bb_canvas.min.x + border, bb_canvas.min.y),
+            iced::Point::new(bb_canvas.min.x + border, bb_canvas.max.y - border),
+        );
+        //this is the grid stroke line being used, solid and thin
+        let grid_stroke_line = Stroke {
+            width: (0.1 * self.vct.y_scale()).clamp(0.5, 2.0),
+            style: Style::Solid(Color::from_rgba(1.0, 1.0, 1.0, 0.5)),
+            ..Stroke::default()
+        };
+
+        //draw axes
+        frame.stroke(&x_axis, grid_stroke_line.clone());
+        frame.stroke(&y_axis, grid_stroke_line.clone());
+
+        //set up sizes for rectangles to cover axes boundaries
+        let x_size = Size {
+            width: bb_canvas.width(),
+            height: bb_canvas.max.y - border,
+        };
+        let y_size = Size {
+            width: bb_canvas.min.x + border,
+            height: bb_canvas.height(),
+        };
+
+        //layer for the borders
+        frame.fill_rectangle(
+            iced::Point::new(bb_canvas.min.x, bb_canvas.max.y - border),
+            x_size,
+            Fill {
+                style: Style::from(Color::from_rgb(0.2, 0.2, 0.2)),
+                rule: Rule::NonZero,
+            },
+        );
+
+        //rectangle to cover the canvas space bounds
+        frame.fill_rectangle(
+            iced::Point::new(bb_canvas.min.x, bb_canvas.min.y),
+            y_size,
+            Fill {
+                style: Style::from(Color::from_rgb(0.2, 0.2, 0.2)),
+                rule: Rule::NonZero,
+            },
+        );
+
+        //draw border for the ticks
+        frame.stroke(&bottom_border, grid_stroke_line.clone());
+        frame.stroke(&left_border, grid_stroke_line.clone());
+
+        let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64)
+            .step_by(xy_indexer as usize);
+        let scale_val = if self.vct.x_scale() > 12.0 {
+            12.0
+        } else {
+            50.0 * text_scale_value(self.vct.x_scale())
+        };
+
+        for (index, x) in x_values.enumerate() {
+            let exp_indexer = index as i64;
+            let exp_mod = exp_indexer % emod;
+            let tick_y = if exp_mod == 0 {
+                bb_canvas.max.y - text_tick_border
+            } else {
+                bb_canvas.max.y - 30.0
+            };
+
+            let tick = Path::line(
+                iced::Point::new(x as f32, tick_y),
+                iced::Point::new(x as f32, bb_canvas.max.y - border),
+            );
+            frame.stroke(&tick, grid_stroke_line.clone());
+
+            if exp_mod == 0 {
+                frame.fill_text(Text {
+                    content: format!("{:+.2e}", exp_indexer),
+                    position: iced::Point::new(x as f32, bb_canvas.max.y - 23.0),
+                    color: Color::from_rgb(1.0, 1.0, 1.0),
+                    size: scale_val,
+                    ..Default::default()
+                });
+            }
+        }
+
+        //build/draw ticks on y axis. max.y starts at bottom so it needs to decrement
+        let mut y = bb_canvas.max.y as i64 - border as i64;
+        let mut exponent = 0;
+
+        let scale_val = if self.vct.y_scale() > 12.0 {
+            12.0
+        } else {
+            50.0 * text_scale_value(self.vct.y_scale())
+        };
+
+        while y > xy_indexer {
+            let exp_indexer = (bb_canvas.max.y as i64 - y) / xy_indexer;
+            let tick_border = if exp_indexer % emod == 0 {
+                text_tick_border
+            } else {
+                tick_boder
+            };
+
+            let tick = Path::line(
+                iced::Point::new(bb_canvas.min.x + tick_border, y as f32),
+                iced::Point::new(bb_canvas.min.x + border, y as f32),
+            );
+            frame.stroke(&tick, grid_stroke_line.clone());
+
+            if exp_indexer % emod == 0 || y == bb_canvas.max.y as i64 - border as i64 {
+                frame.fill_text(Text {
+                    content: format!("{:+.2e}", exponent),
+                    position: iced::Point::new(bb_canvas.min.x + 5.0, y as f32),
+                    color: Color::from_rgb(1.0, 1.0, 1.0),
+                    size: scale_val,
+                    horizontal_alignment: alignment::Horizontal::Left,
+                    vertical_alignment: alignment::Vertical::Bottom,
+                    ..Default::default()
+                });
+                exponent += 1;
+            }
+
+            y -= xy_indexer;
+        }
     }
 }
