@@ -666,8 +666,8 @@ where
         //draw border for the ticks
         frame.stroke(&bottom_border, grid_stroke_line.clone());
         frame.stroke(&left_border, grid_stroke_line.clone());
-
-        let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(1);
+        let step = 20;
+        let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(step);
         let scale_val = 8.0;
         for (_index, x) in x_values.enumerate() {
             let tick_y = bb_canvas.max.y - 30.0;
@@ -710,7 +710,7 @@ where
                 iced::Point::new(bb_canvas.min.x + border, y as f32),
             );
             frame.stroke(&tick, grid_stroke_line.clone());
-            y -= 20;
+            y -= step as i64;
         }
     }
 }
