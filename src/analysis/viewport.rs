@@ -667,37 +667,23 @@ where
         frame.stroke(&bottom_border, grid_stroke_line.clone());
         frame.stroke(&left_border, grid_stroke_line.clone());
 
-        let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64)
-            .step_by(xy_indexer as usize);
-        let scale_val = if self.vct.x_scale() > 12.0 {
-            12.0
-        } else {
-            50.0 * text_scale_value(self.vct.x_scale())
-        };
-
-        for (index, x) in x_values.enumerate() {
-            let exp_indexer = index as i64;
-            let exp_mod = exp_indexer % emod;
-            let tick_y = if exp_mod == 0 {
-                bb_canvas.max.y - text_tick_border
-            } else {
-                bb_canvas.max.y - 30.0
-            };
-
-            let tick = Path::line(
-                iced::Point::new(x as f32, tick_y),
-                iced::Point::new(x as f32, bb_canvas.max.y - border),
-            );
-            frame.stroke(&tick, grid_stroke_line.clone());
-
-            if exp_mod == 0 {
+        let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(1);
+        let scale_val = 8.0;
+        for (_index, x) in x_values.enumerate() {
+            let tick_y = bb_canvas.max.y - 30.0;
+            if x % 20 == 0 {
                 frame.fill_text(Text {
-                    content: format!("{:+.2e}", exp_indexer),
+                    content: format!("{:+.2e}", 5),
                     position: iced::Point::new(x as f32, bb_canvas.max.y - 23.0),
                     color: Color::from_rgb(1.0, 1.0, 1.0),
                     size: scale_val,
                     ..Default::default()
                 });
+                let tick = Path::line(
+                    iced::Point::new(x as f32, tick_y),
+                    iced::Point::new(x as f32, bb_canvas.max.y - border),
+                );
+                frame.stroke(&tick, grid_stroke_line.clone());
             }
         }
 
@@ -705,40 +691,26 @@ where
         let mut y = bb_canvas.max.y as i64 - border as i64;
         let mut exponent = 0;
 
-        let scale_val = if self.vct.y_scale() > 12.0 {
-            12.0
-        } else {
-            50.0 * text_scale_value(self.vct.y_scale())
-        };
+        let scale_val = 8.0;
 
-        while y > xy_indexer {
-            let exp_indexer = (bb_canvas.max.y as i64 - y) / xy_indexer;
-            let tick_border = if exp_indexer % emod == 0 {
-                text_tick_border
-            } else {
-                tick_boder
-            };
-
+        while y > bb_canvas.min.y as i64 {
+            //let exp_indexer = (bb_canvas.max.y as i64 - y) / xy_indexer;
+            let tick_border = 30.0;
+            frame.fill_text(Text {
+                content: format!("{:+.2e}", 5),
+                position: iced::Point::new(bb_canvas.min.x + 5.0, y as f32),
+                color: Color::from_rgb(1.0, 1.0, 1.0),
+                size: scale_val,
+                horizontal_alignment: alignment::Horizontal::Left,
+                vertical_alignment: alignment::Vertical::Bottom,
+                ..Default::default()
+            });
             let tick = Path::line(
                 iced::Point::new(bb_canvas.min.x + tick_border, y as f32),
                 iced::Point::new(bb_canvas.min.x + border, y as f32),
             );
             frame.stroke(&tick, grid_stroke_line.clone());
-
-            if exp_indexer % emod == 0 || y == bb_canvas.max.y as i64 - border as i64 {
-                frame.fill_text(Text {
-                    content: format!("{:+.2e}", exponent),
-                    position: iced::Point::new(bb_canvas.min.x + 5.0, y as f32),
-                    color: Color::from_rgb(1.0, 1.0, 1.0),
-                    size: scale_val,
-                    horizontal_alignment: alignment::Horizontal::Left,
-                    vertical_alignment: alignment::Vertical::Bottom,
-                    ..Default::default()
-                });
-                exponent += 1;
-            }
-
-            y -= xy_indexer;
+            y -= 20;
         }
     }
 }
