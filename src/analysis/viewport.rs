@@ -593,6 +593,7 @@ where
             iced::Point::new(bb_canvas.min.x, bb_canvas.center().y),
             iced::Point::new(bb_canvas.max.x, bb_canvas.center().y),
         );
+
         //get the line border for the ticks set up
         let bottom_border = Path::line(
             iced::Point::new(bb_canvas.min.x + border, bb_canvas.max.y - border),
@@ -622,6 +623,7 @@ where
             width: bb_canvas.min.x + border,
             height: bb_canvas.height(),
         };
+
         //layer for the borders
         frame.fill_rectangle(
             iced::Point::new(bb_canvas.min.x, bb_canvas.max.y - border),
@@ -631,6 +633,7 @@ where
                 rule: Rule::NonZero,
             },
         );
+
         //rectangle to cover the canvas space bounds
         frame.fill_rectangle(
             iced::Point::new(bb_canvas.min.x, bb_canvas.min.y),
@@ -645,13 +648,13 @@ where
         frame.stroke(&bottom_border, grid_stroke_line.clone());
         frame.stroke(&left_border, grid_stroke_line.clone());
 
-        let step = 20;
+        let step = 10;
         let scale_val = 8.0;
 
         let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(step);
         for (index, x) in x_values.enumerate() {
-            let tick_y = bb_canvas.max.y - 30.0;
-            if x % step as i64 == 0 {
+            if index % 5 == 0 {
+                let tick_y = bb_canvas.max.y - 30.0;
                 frame.fill_text(Text {
                     content: format!("{:+.2e}", index),
                     position: iced::Point::new(x as f32, bb_canvas.max.y - 23.0),
@@ -664,28 +667,44 @@ where
                     iced::Point::new(x as f32, bb_canvas.max.y - border),
                 );
                 frame.stroke(&tick, grid_stroke_line.clone());
+            }else{
+                let tick_y = bb_canvas.max.y - 35.0;
+                let tick = Path::line(
+                    iced::Point::new(x as f32, tick_y),
+                    iced::Point::new(x as f32, bb_canvas.max.y - border),
+                );
+                frame.stroke(&tick, grid_stroke_line.clone());
             }
         }
 
         //build/draw ticks on y axis. max.y starts at bottom so it needs to decrement
         let y_max = bb_canvas.max.y as i64 - border as i64;
         let y_values = (bb_canvas.min.y as i64..=y_max).rev().step_by(step);
-        let tick_border = 30.0;
         for (index, y) in y_values.enumerate() {
-            frame.fill_text(Text {
-                content: format!("{:+.2e}", index),
-                position: iced::Point::new(bb_canvas.min.x + 5.0, y as f32),
-                color: Color::from_rgb(1.0, 1.0, 1.0),
-                size: scale_val,
-                horizontal_alignment: alignment::Horizontal::Left,
-                vertical_alignment: alignment::Vertical::Bottom,
-                ..Default::default()
-            });
-            let tick = Path::line(
-                iced::Point::new(bb_canvas.min.x + tick_border, y as f32),
-                iced::Point::new(bb_canvas.min.x + border, y as f32),
-            );
-            frame.stroke(&tick, grid_stroke_line.clone());
+            if index % 5 == 0 {
+                let tick_border = 30.0;
+                frame.fill_text(Text {
+                    content: format!("{:+.2e}", index),
+                    position: iced::Point::new(bb_canvas.min.x + 5.0, y as f32),
+                    color: Color::from_rgb(1.0, 1.0, 1.0),
+                    size: scale_val,
+                    horizontal_alignment: alignment::Horizontal::Left,
+                    vertical_alignment: alignment::Vertical::Bottom,
+                    ..Default::default()
+                });
+                let tick = Path::line(
+                    iced::Point::new(bb_canvas.min.x + tick_border, y as f32),
+                    iced::Point::new(bb_canvas.min.x + border, y as f32),
+                );
+                frame.stroke(&tick, grid_stroke_line.clone());
+            }else{
+                let tick_border = 35.0;
+                let tick = Path::line(
+                    iced::Point::new(bb_canvas.min.x + tick_border, y as f32),
+                    iced::Point::new(bb_canvas.min.x + border, y as f32),
+                );
+                frame.stroke(&tick, grid_stroke_line.clone());
+            }
         }
     }
 }
