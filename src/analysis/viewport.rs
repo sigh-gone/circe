@@ -581,26 +581,7 @@ where
     }
 
     pub fn draw_grid(&self, frame: &mut Frame, bb_canvas: CSBox) {
-        fn text_scale_value(value: f32) -> f32 {
-            let value_str = value.to_string();
-            let decimal_index = value_str.find('.').unwrap_or(value_str.len());
-
-            let digits_before_decimal = decimal_index;
-            let scale_factor = 10.0_f32.powi(-(digits_before_decimal as i32));
-
-            value * scale_factor
-        }
-
         let border = 40.0;
-        let text_tick_border = 23.0;
-        let tick_boder = 30.0;
-        let xy_indexer: i64 = if self.vct.x_scale() as i64 > 0 {
-            self.vct.x_scale() as i64
-        } else {
-            1
-        };
-        let emod = 10;
-
         //draw x axis
         let y_axis = Path::line(
             iced::Point::new(bb_canvas.center().x, bb_canvas.min.y),
@@ -612,7 +593,6 @@ where
             iced::Point::new(bb_canvas.min.x, bb_canvas.center().y),
             iced::Point::new(bb_canvas.max.x, bb_canvas.center().y),
         );
-
         //get the line border for the ticks set up
         let bottom_border = Path::line(
             iced::Point::new(bb_canvas.min.x + border, bb_canvas.max.y - border),
@@ -642,7 +622,6 @@ where
             width: bb_canvas.min.x + border,
             height: bb_canvas.height(),
         };
-
         //layer for the borders
         frame.fill_rectangle(
             iced::Point::new(bb_canvas.min.x, bb_canvas.max.y - border),
@@ -652,7 +631,6 @@ where
                 rule: Rule::NonZero,
             },
         );
-
         //rectangle to cover the canvas space bounds
         frame.fill_rectangle(
             iced::Point::new(bb_canvas.min.x, bb_canvas.min.y),
@@ -666,9 +644,11 @@ where
         //draw border for the ticks
         frame.stroke(&bottom_border, grid_stroke_line.clone());
         frame.stroke(&left_border, grid_stroke_line.clone());
+
         let step = 20;
-        let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(step);
         let scale_val = 8.0;
+
+        let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(step);
         for (index, x) in x_values.enumerate() {
             let tick_y = bb_canvas.max.y - 30.0;
             if x % step as i64 == 0 {
@@ -690,7 +670,6 @@ where
         //build/draw ticks on y axis. max.y starts at bottom so it needs to decrement
         let y_max = bb_canvas.max.y as i64 - border as i64;
         let y_values = (bb_canvas.min.y as i64..=y_max).rev().step_by(step);
-        let scale_val = 8.0;
         let tick_border = 30.0;
         for (index, y) in y_values.enumerate() {
             frame.fill_text(Text {
