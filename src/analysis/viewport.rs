@@ -669,11 +669,11 @@ where
         let step = 20;
         let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(step);
         let scale_val = 8.0;
-        for (_index, x) in x_values.enumerate() {
+        for (index, x) in x_values.enumerate() {
             let tick_y = bb_canvas.max.y - 30.0;
             if x % step as i64 == 0 {
                 frame.fill_text(Text {
-                    content: format!("{:+.2e}", 5),
+                    content: format!("{:+.2e}", index),
                     position: iced::Point::new(x as f32, bb_canvas.max.y - 23.0),
                     color: Color::from_rgb(1.0, 1.0, 1.0),
                     size: scale_val,
@@ -692,9 +692,9 @@ where
         let y_values = (bb_canvas.min.y as i64..=y_max).rev().step_by(step);
         let scale_val = 8.0;
         let tick_border = 30.0;
-        for (_index, y) in y_values.enumerate() {
+        for (index, y) in y_values.enumerate() {
             frame.fill_text(Text {
-                content: format!("{:+.2e}", 5),
+                content: format!("{:+.2e}", index),
                 position: iced::Point::new(bb_canvas.min.x + 5.0, y as f32),
                 color: Color::from_rgb(1.0, 1.0, 1.0),
                 size: scale_val,
