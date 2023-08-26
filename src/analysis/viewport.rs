@@ -671,7 +671,7 @@ where
         let scale_val = 8.0;
         for (_index, x) in x_values.enumerate() {
             let tick_y = bb_canvas.max.y - 30.0;
-            if x % 20 == 0 {
+            if x % step as i64 == 0 {
                 frame.fill_text(Text {
                     content: format!("{:+.2e}", 5),
                     position: iced::Point::new(x as f32, bb_canvas.max.y - 23.0),
@@ -688,14 +688,11 @@ where
         }
 
         //build/draw ticks on y axis. max.y starts at bottom so it needs to decrement
-        let mut y = bb_canvas.max.y as i64 - border as i64;
-        let mut exponent = 0;
-
+        let y_max = bb_canvas.max.y as i64 - border as i64;
+        let y_values = (bb_canvas.min.y as i64..=y_max).rev().step_by(step);
         let scale_val = 8.0;
-
-        while y > bb_canvas.min.y as i64 {
-            //let exp_indexer = (bb_canvas.max.y as i64 - y) / xy_indexer;
-            let tick_border = 30.0;
+        let tick_border = 30.0;
+        for (_index, y) in y_values.enumerate() {
             frame.fill_text(Text {
                 content: format!("{:+.2e}", 5),
                 position: iced::Point::new(bb_canvas.min.x + 5.0, y as f32),
@@ -710,7 +707,6 @@ where
                 iced::Point::new(bb_canvas.min.x + border, y as f32),
             );
             frame.stroke(&tick, grid_stroke_line.clone());
-            y -= step as i64;
         }
     }
 }
