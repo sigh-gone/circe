@@ -591,7 +591,6 @@ where
     }
 
     pub fn draw_grid(&self, frame: &mut Frame, bb_canvas: CSBox) {
-
         let border = 40.0;
         //draw x axis
         let y_axis = Path::line(
@@ -662,11 +661,11 @@ where
         let step = 10;
         let text_size = 8.0;
 
-        let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(step);
+        let x_values =
+            (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(step);
         for (index, x) in x_values.enumerate() {
-
             if index % 5 == 0 {
-                let scaled_val = (index as f32* self.vct.x_scale_flat());
+                let scaled_val = (index as f32 * self.vct.x_scale_flat());
                 let tick_y = bb_canvas.max.y - 30.0;
                 frame.fill_text(Text {
                     content: format!("{:+.2e}", scaled_val),
@@ -680,7 +679,7 @@ where
                     iced::Point::new(x as f32, bb_canvas.max.y - border),
                 );
                 frame.stroke(&tick, grid_stroke_line.clone());
-            }else{
+            } else {
                 let tick_y = bb_canvas.max.y - 35.0;
                 let tick = Path::line(
                     iced::Point::new(x as f32, tick_y),
@@ -695,7 +694,7 @@ where
         let y_values = (bb_canvas.min.y as i64..=y_max).rev().step_by(step);
         for (index, y) in y_values.enumerate() {
             if index % 5 == 0 {
-                let scaled_val = (index as f32* self.vct.x_scale_flat());
+                let scaled_val = (index as f32 * self.vct.x_scale_flat());
                 let tick_border = 30.0;
                 frame.fill_text(Text {
                     content: format!("{:+.2e}", scaled_val),
@@ -711,7 +710,7 @@ where
                     iced::Point::new(bb_canvas.min.x + border, y as f32),
                 );
                 frame.stroke(&tick, grid_stroke_line.clone());
-            }else{
+            } else {
                 let tick_border = 35.0;
                 let tick = Path::line(
                     iced::Point::new(bb_canvas.min.x + tick_border, y as f32),
