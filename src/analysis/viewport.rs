@@ -616,7 +616,7 @@ where
         );
         //this is the grid stroke line being used, solid and thin
         let grid_stroke_line = Stroke {
-            width: (0.1 * self.vct.y_scale()).clamp(0.5, 2.0),
+            width: 1.0,
             style: Style::Solid(Color::from_rgba(1.0, 1.0, 1.0, 0.5)),
             ..Stroke::default()
         };
