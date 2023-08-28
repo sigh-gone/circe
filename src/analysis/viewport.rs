@@ -592,16 +592,6 @@ where
 
     pub fn draw_grid(&self, frame: &mut Frame, bb_canvas: CSBox) {
 
-        fn calculate_scaled_values(zoom_level: f64, axis_factor: f64) -> f64 {
-            // Calculate the new scale value based on zoom
-            let initial_axis_value: f64 = 10.0;
-            // Calculate the new axis ruler value based on zoom
-            let scaled_axis_value = zoom_level * axis_factor.powf(initial_axis_value);
-
-            scaled_axis_value
-        }
-
-
         let border = 40.0;
         //draw x axis
         let y_axis = Path::line(
@@ -670,9 +660,7 @@ where
         frame.stroke(&left_border, grid_stroke_line.clone());
 
         let step = 10;
-        let scale_val = 8.0;
-        println!("x scale {:?}", self.vct.x_scale());
-        println!("y scale {:?}", self.vct.y_scale());
+        let text_size = 8.0;
 
         let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(step);
         for (index, x) in x_values.enumerate() {
@@ -684,7 +672,7 @@ where
                     content: format!("{:+.2e}", scaled_val),
                     position: iced::Point::new(x as f32, bb_canvas.max.y - 23.0),
                     color: Color::from_rgb(1.0, 1.0, 1.0),
-                    size: scale_val,
+                    size: text_size,
                     ..Default::default()
                 });
                 let tick = Path::line(
@@ -713,7 +701,7 @@ where
                     content: format!("{:+.2e}", scaled_val),
                     position: iced::Point::new(bb_canvas.min.x + 5.0, y as f32),
                     color: Color::from_rgb(1.0, 1.0, 1.0),
-                    size: scale_val,
+                    size: text_size,
                     horizontal_alignment: alignment::Horizontal::Left,
                     vertical_alignment: alignment::Vertical::Bottom,
                     ..Default::default()
