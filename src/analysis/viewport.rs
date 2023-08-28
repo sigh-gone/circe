@@ -19,6 +19,7 @@ use iced::{
     },
     Color, Length, Rectangle, Size, Theme,
 };
+use num::BigInt;
 
 /// viewport to canvas space transform with independent x-y aspect ratios
 #[derive(Debug, Clone, Copy)]
@@ -28,9 +29,18 @@ impl VCTransformFreeAspect {
     pub fn x_scale(&self) -> f32 {
         self.0.m11.abs()
     }
+    ///returns the non abs value of x scale
+    pub fn x_scale_flat(&self) -> f32 {
+        self.0.m11
+    }
     /// returns the scale along the y scale
     pub fn y_scale(&self) -> f32 {
         self.0.m22.abs()
+    }
+
+    /// returns the scale along the y scale
+    pub fn y_scale_flat(&self) -> f32 {
+        self.0.m22
     }
     /// returns the identity transform of this type
     pub fn identity() -> Self {
@@ -581,6 +591,17 @@ where
     }
 
     pub fn draw_grid(&self, frame: &mut Frame, bb_canvas: CSBox) {
+
+        fn calculate_scaled_values(zoom_level: f64, axis_factor: f64) -> f64 {
+            // Calculate the new scale value based on zoom
+            let initial_axis_value: f64 = 10.0;
+            // Calculate the new axis ruler value based on zoom
+            let scaled_axis_value = zoom_level * axis_factor.powf(initial_axis_value);
+
+            scaled_axis_value
+        }
+
+
         let border = 40.0;
         //draw x axis
         let y_axis = Path::line(
@@ -650,13 +671,17 @@ where
 
         let step = 10;
         let scale_val = 8.0;
+        println!("x scale {:?}", self.vct.x_scale());
+        println!("y scale {:?}", self.vct.y_scale());
 
         let x_values = (bb_canvas.min.x as i64 + border as i64..=bb_canvas.max.x as i64).step_by(step);
         for (index, x) in x_values.enumerate() {
+
             if index % 5 == 0 {
+                let scaled_val = (index as f32* self.vct.x_scale_flat());
                 let tick_y = bb_canvas.max.y - 30.0;
                 frame.fill_text(Text {
-                    content: format!("{:+.2e}", index),
+                    content: format!("{:+.2e}", scaled_val),
                     position: iced::Point::new(x as f32, bb_canvas.max.y - 23.0),
                     color: Color::from_rgb(1.0, 1.0, 1.0),
                     size: scale_val,
@@ -682,9 +707,10 @@ where
         let y_values = (bb_canvas.min.y as i64..=y_max).rev().step_by(step);
         for (index, y) in y_values.enumerate() {
             if index % 5 == 0 {
+                let scaled_val = (index as f32* self.vct.x_scale_flat());
                 let tick_border = 30.0;
                 frame.fill_text(Text {
-                    content: format!("{:+.2e}", index),
+                    content: format!("{:+.2e}", scaled_val),
                     position: iced::Point::new(bb_canvas.min.x + 5.0, y as f32),
                     color: Color::from_rgb(1.0, 1.0, 1.0),
                     size: scale_val,
