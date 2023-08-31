@@ -1,14 +1,12 @@
 //! Schematic
 //! Space in which devices and nets live in
 
-mod circuit;
-pub(crate) mod circuit_page;
+pub mod circuit;
 mod elements;
 mod interactable;
 mod layers;
 mod models;
-mod symbols;
-pub(crate) mod symbols_page;
+pub mod symbols;
 mod viewport;
 
 use crate::transforms::{self, CSPoint, Point, SSTransform, VCTransform, VSBox, VSPoint};
@@ -110,9 +108,9 @@ where
     /// return true if content is in its default/idle state
     fn is_idle(&self) -> bool;
     /// apply sst to elements
-    fn move_elements(&mut self, elements: &HashSet<E>, vvt: &VVTransform);
+    fn move_elements(&mut self, elements: &mut HashSet<E>, vvt: &VVTransform);
     /// apply sst to a copy of elements
-    fn copy_elements(&mut self, elements: &HashSet<E>, vvt: &VVTransform);
+    fn copy_elements(&mut self, elements: &mut HashSet<E>, vvt: &VVTransform);
     /// delete elements
     fn delete_elements(&mut self, elements: &HashSet<E>);
     /// process message, returns whether or not to clear the passive cache
@@ -393,10 +391,8 @@ where
                             )),
                         ) => {
                             if let Some((vsp0, vsp1, vvt)) = &mut opt_pts {
-                                self.content.move_elements(
-                                    &self.selected,
-                                    &SchematicSt::move_transform(*vsp0, *vsp1, *vvt),
-                                );
+                                let vvt = SchematicSt::move_transform(*vsp0, *vsp1, *vvt);
+                                self.content.move_elements(&mut self.selected, &vvt);
                                 clear_passive = true;
                                 self.state = SchematicSt::Idle;
                             } else {
@@ -426,7 +422,7 @@ where
                         ) => match opt_pts {
                             Some((vsp0, vsp1, vvt)) => {
                                 self.content.copy_elements(
-                                    &self.selected,
+                                    &mut self.selected,
                                     &SchematicSt::move_transform(*vsp0, *vsp1, *vvt),
                                 );
                                 clear_passive = true;
