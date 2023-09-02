@@ -72,15 +72,23 @@ where
         return true;
     }
 
+    let mut i: u8 = 0;
     // start visiting frontier nodes
     while let Some(MinScored(cost, this)) = st.to_visit.pop() {
+        // if this == SSPoint::new(0, 2) {
+        //     // debug helper
+        //     dbg!("kek");
+        // }
         if st.visited.contains(&this) {
             // was already visited through a lower cost path
             continue;
         }
-        if cost > 1000.0 {
-            // give up once costs get too high
-            break;
+        
+        if i == u8::MAX {
+            // give up after set iterations
+            return false;
+        } else {
+            i = i.saturating_add(1);
         }
         let prev = st.cost_map.get(&this).unwrap().1;
         for next in [
@@ -89,6 +97,10 @@ where
             this + SSVec::new(-1, 0),
             this + SSVec::new(0, -1),
         ] {
+            // if next == SSPoint::new(0, 3) {
+            //     // debug helper
+            //     dbg!("kek");
+            // }
             if st.visited.contains(&next) {
                 // already found a lower cost path to this target
                 continue;
@@ -106,14 +118,14 @@ where
                     st.to_visit.push(MinScored(next_score, next));
                 }
             }
+            if goals.iter().any(|n| n == &next) {
+                // goal was reached
+                return true;
+            }
         }
         st.visited.insert(this);
-        if goals.iter().any(|n| n == &this) {
-            // goal was reached
-            break;
-        }
     }
-    true
+    false
 }
 
 /// build path to target from pathfinding state
